@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería - Menú Digital & Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .coffee-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .item-card {
+            transition: all 0.3s ease;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 glass-effect border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-amber-700 rounded-full flex items-center justify-center text-white">
+                        <i class="fas fa-coffee text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Tu Cafetería</h1>
+                        <p class="text-xs text-gray-500">Menú Digital</p>
+                    </div>
+                </div>
+                <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-amber-700 transition-colors">
+                    <i class="fas fa-shopping-bag text-2xl"></i>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Hero Section -->
+        <div class="text-center py-12 animate-fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">¿Qué se te antoja hoy?</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Selecciona tus productos favoritos y envía tu pedido directo por WhatsApp. Prepararemos todo con mucho cariño.</p>
+            <div class="mt-4 inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <i class="fas fa-info-circle mr-2"></i>
+                Demo: El número de WhatsApp es ficticio (55 1234 5678)
+            </div>
+        </div>
+
+        <!-- Category Navigation -->
+        <div class="sticky top-16 z-40 bg-gray-50/95 backdrop-blur-sm py-4 mb-8 scrollbar-hide overflow-x-auto">
+            <div class="flex space-x-2 min-w-max px-2" id="category-nav">
+                <!-- Categories injected by JS -->
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+            <!-- Products injected by JS -->
+        </div>
+
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 transition-opacity" onclick="toggleCart()"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform transition-transform translate-x-full" id="cart-panel">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900">Tu Pedido</h3>
+                    <button onclick="toggleCart()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <p class="text-center text-gray-500 py-8">Tu carrito está vacío</p>
+                </div>
+
+                <div class="border-t border-gray-200 p-6 space-y-4 bg-gray-50">
+                    <div class="flex justify-between items-center text-lg font-semibold">
+                        <span>Total:</span>
+                        <span id="cart-total" class="text-2xl text-amber-700">$0.00</span>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <input type="text" id="customer-name" placeholder="Tu nombre" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                        <textarea id="customer-notes" placeholder="Notas especiales (ej: sin azúcar, para llevar...)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent h-20 resize-none"></textarea>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 mb-2">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Modo Demo: Los pedidos se enviarán al número ficticio 55 1234 5678
+                    </div>
+
+                    <button onclick="sendOrder()" id="send-btn" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fab fa-whatsapp text-xl"></i>
+                        <span>Enviar Pedido por WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="relative bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-fade-in">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-2xl text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">¡Pedido Listo!</h3>
+            <p class="text-gray-600 mb-4">Este es un proyecto demo. En un caso real, se abriría WhatsApp con el número 55 1234 5678</p>
+            <div class="bg-gray-100 p-3 rounded-lg text-left text-xs text-gray-600 mb-4 font-mono break-all" id="demo-link">
+                <!-- Aquí se mostrará el enlace generado -->
+            </div>
+            <button onclick="closeSuccessModal()" class="w-full bg-gray-900 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                Cerrar Demo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Menu Data
+        const menuData = {
+            cafes_frios: {
+                icon: 'fa-snowflake',
+                color: 'blue',
+                items: [
+                    { name: 'Moka', price: 55, description: 'Café con chocolate y leche fría' },
+                    { name: 'Chocolate', price: 50, description: 'Bebida de chocolate frío' },
+                    { name: 'Frappuccino', price: 55, description: 'Café helado estilo frappe' },
+                    { name: 'Caramelo', price: 55, description: 'Café frío con caramelo' },
+                    { name: 'Cajeta', price: 58, description: 'Café frío con cajeta' },
+                    { name: 'Especial', price: 65, description: 'Mezcla especial de la casa' },
+                    { name: 'Caramel', price: 55, description: 'Café con notas de caramelo' }
+                ]
+            },
+            cafes_calientes: {
+                icon: 'fa-mug-hot',
+                color: 'orange',
+                items: [
+                    { name: 'Chocolate', price: 45, description: 'Chocolate caliente tradicional' },
+                    { name: 'Expreso', price: 30, description: 'Café expreso intenso' },
+                    { name: 'Americano', price: 35, description: 'Café americano' },
+                    { name: 'Negro', price: 30, description: 'Café negro tradicional' },
+                    { name: 'Cappuccino', price: 45, description: 'Café con espuma de leche' },
+                    { name: 'Macchiato', price: 45, description: 'Café con toque de leche' },
+                    { name: 'Bombón', price: 50, description: 'Café con leche condensada' },
+                    { name: 'Late', price: 48, description: 'Café con leche cremosa' }
+                ]
+            },
+            crepas_sencillas: {
+                icon: 'fa-circle',
+                color: 'pink',
+                items: [
+                    { name: 'Zarzamora', price: 45, description: 'Crepa con mermelada de zarzamora' },
+                    { name: 'Philadelphia', price: 45, description: 'Crepa con queso crema' },
+                    { name: 'Nutella', price: 55, description: 'Crepa con Nutella' },
+                    { name: 'Cajeta', price: 45, description: 'Crepa con cajeta tradicional' },
+                    { name: 'Frambuesa', price: 45, description: 'Crepa con frambuesas' },
+                    { name: 'Fresa', price: 40, description: 'Crepa con fresas frescas' },
+                    { name: 'Hawaiana', price: 50, description: 'Crepa con jamón y queso tipo hawaiano' },
+                    { name: 'Queso de Bola', price: 50, description: 'Crepa con queso de bola edam' }
+                ]
+            },
+            crepas_bubbles: {
+                icon: 'fa-star',
+                color: 'purple',
+                items: [
+                    { name: 'Zarzamora con Philadelphia', price: 65, description: 'Combinación perfecta de zarzamora y queso' },
+                    { name: 'Kinder Délice', price: 75, description: 'Con chocolate Kinder Délice' },
+                    { name: 'Queso con Kinder', price: 75, description: 'Mezcla de queso y chocolate Kinder' },
+                    { name: 'Oreo', price: 70, description: 'Con galletas Oreo trituradas' },
+                    { name: 'Con Helado', price: 80, description: 'Crepa acompañada de helado' }
+                ]
+            }
+        };
+
+        let cart = [];
+        let currentCategory = 'cafes_frios';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderMenu();
+        });
+
+        function renderCategories() {
+            const nav = document.getElementById('category-nav');
+            const categories = {
+                'cafes_frios': 'Cafés Fríos ❄️',
+                'cafes_calientes': 'Cafés Calientes ☕',
+                'crepas_sencillas': 'Crepas Sencillas 🥞',
+                'crepas_bubbles': 'Crepas Bubbles ⭐'
+            };
+
+            nav.innerHTML = Object.entries(categories).map(([key, label]) => `
+                <button onclick="switchCategory('${key}')" 
+                    class="category-btn px-6 py-2 rounded-full font-medium transition-all whitespace-nowrap ${currentCategory === key ? 'bg-amber-700 text-white shadow-lg transform scale-105' : 'bg-white text-gray-700 hover:bg-amber-100 border border-gray-200'}">
+                    ${label}
+                </button>
+            `).join('');
+        }
+
+        function switchCategory(category) {
+            currentCategory = category;
+            renderCategories();
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const grid = document.getElementById('menu-grid');
+            const category = menuData[currentCategory];
+            
+            grid.innerHTML = category.items.map((item, index) => `
+                <div class="item-card bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100" style="animation: fadeIn 0.5s ease-out ${index * 0.1}s both;">
+                    <div class="h-32 bg-gradient-to-br from-${category.color}-100 to-${category.color}-200 flex items-center justify-center">
+                        <i class="fas ${category.icon} text-4xl text-${category.color}-600 opacity-50"></i>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-lg text-gray-900">${item.name}</h3>
+                            <span class="text-xl font-bold text-amber-700">$${item.price}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">${item.description}</p>
+                        <button onclick="addToCart('${item.name}', ${item.price})" 
+                            class="w-full bg-gray-900 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 group">
+                            <i class="fas fa-plus transition-transform group-hover:rotate-90"></i>
+                            <span>Agregar al pedido</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            updateCart();
+            
+            // Visual feedback
+            const badge = document.getElementById('cart-badge');
+            badge.classList.add('scale-125');
+            setTimeout(() => badge.classList.remove('scale-125'), 200);
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateQuantity(index, delta) {
+            cart[index].quantity += delta;
+            if (cart[index].quantity <= 0) {
+                removeFromCart(index);
+            } else {
+                updateCart();
+            }
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartBadge = document.getElementById('cart-badge');
+            const cartTotal = document.getElementById('cart-total');
+            const sendBtn = document.getElementById('send-btn');
+
+            // Update badge
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            if (totalItems > 0) {
+                cartBadge.textContent = totalItems;
+                cartBadge.classList.remove('hidden');
+                sendBtn.disabled = false;
+            } else {
+                cartBadge.classList.add('hidden');
+                sendBtn.disabled = true;
+            }
+
+            // Update cart items
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-center text-gray-500 py-8">Tu carrito está vacío</p>';
+                cartTotal.textContent = '$0.00';
+                return;
+            }
+
+            cartItems.innerHTML = cart.map((item, index) => `
+                <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg animate-slide-in">
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-900">${item.name}</h4>
+                        <p class="text-sm text-gray-500">$${item.price} c/u</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="updateQuantity(${index}, -1)" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors">
+                            <i class="fas fa-minus text-xs"></i>
+                        </button>
+                        <span class="font-semibold w-4 text-center">${item.quantity}</span>
+                        <button onclick="updateQuantity(${index}, 1)" class="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-700 flex items-center justify-center transition-colors">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update total
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            const panel = document.getElementById('cart-panel');
+            
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                setTimeout(() => {
+                    panel.classList.remove('translate-x-full');
+                }, 10);
+            } else {
+                panel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    sidebar.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function sendOrder() {
+            const name = document.getElementById('customer-name').value.trim();
+            const notes = document.getElementById('customer-notes').value.trim();
+            
+            if (!name) {
+                alert('Por favor ingresa tu nombre');
+                return;
+            }
+
+            let message = `¡Hola! Quiero hacer un pedido:\n\n`;
+            message += `*Cliente:* ${name}\n\n`;
+            message += `*Pedido:*\n`;
+            
+            let total = 0;
+            cart.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                message += `• ${item.quantity}x ${item.name} - $${subtotal.toFixed(2)}\n`;
+            });
+            
+            message += `\n*Total: $${total.toFixed(2)}*\n`;
+            
+            if (notes) {
+                message += `\n*Notas:* ${notes}`;
+            }
+
+            // NÚMERO FICTICIO PARA DEMO: 55 1234 5678 (México +52)
+            const phoneNumber = '5215512345678';
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            
+            // Mostrar el enlace generado en el modal para demostración
+            document.getElementById('demo-link').textContent = whatsappUrl;
+            document.getElementById('success-modal').classList.remove('hidden');
+            
+            // En una implementación real, aquí se haría:
+            // window.open(whatsappUrl, '_blank');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            cart = [];
+            updateCart();
+            toggleCart();
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-notes').value = '';
+        }
+    </script>
+</body>
+</html>
